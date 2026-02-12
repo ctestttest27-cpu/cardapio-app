@@ -1,92 +1,79 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vida Saudável Pro</title>
+<title>Vida Saudável PRO+</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body{margin:0;font-family:Arial;background:#f2f2f2}
 header{background:#1b5e20;color:white;padding:15px;text-align:center}
 nav{display:flex;overflow:auto;background:#2e7d32}
 nav button{flex:1;padding:10px;border:none;background:#2e7d32;color:white}
-nav button:hover{background:#1b5e20}
 section{display:none;padding:15px}
 .active{display:block}
 .card{background:white;padding:10px;margin:10px 0;border-radius:8px;box-shadow:0 0 5px #ccc}
 input,select{padding:8px;margin:5px 0;width:100%}
-button.action{background:#2e7d32;color:white;padding:8px;border:none;border-radius:5px;margin-top:5px}
-.delete{background:#c62828}
-.dark{background:#121212;color:white}
+button{padding:8px;border:none;border-radius:5px;margin-top:5px}
+.delete{background:#c62828;color:white}
+.edit{background:#f9a825;color:white}
 </style>
 </head>
 <body>
 
-<header><h2>Vida Saudável PRO</h2></header>
+<header><h2>Vida Saudável PRO+</h2></header>
 
 <nav>
-<button onclick="showTab('inicio')">🏠</button>
 <button onclick="showTab('refeicoes')">🥗</button>
-<button onclick="showTab('planejamento')">📅</button>
+<button onclick="showTab('dieta')">📊</button>
 <button onclick="showTab('treino')">🏋</button>
+<button onclick="showTab('peso')">⚖</button>
 <button onclick="showTab('lembrete')">⏰</button>
-<button onclick="showTab('progresso')">📊</button>
 </nav>
 
-<section id="inicio" class="active">
+<section id="refeicoes" class="active">
 <div class="card">
-<h3>Calcular IMC</h3>
-<input id="peso" placeholder="Peso (kg)">
-<input id="altura" placeholder="Altura (m)">
-<button class="action" onclick="calcIMC()">Calcular</button>
-<p id="imcResultado"></p>
-</div>
-<button class="action" onclick="toggleDark()">Modo Escuro</button>
-</section>
-
-<section id="refeicoes">
-<div class="card">
-<h3>Montar Refeição</h3>
 <select id="alimento"></select>
 <input id="quantidade" placeholder="Quantidade (g)">
-<button class="action" onclick="addComida()">Adicionar</button>
-<p id="totalRefeicao">Total: 0 kcal</p>
+<button onclick="addComida()">Adicionar</button>
+<p id="totalRefeicao"></p>
 <ul id="listaComidas"></ul>
 </div>
 </section>
 
-<section id="planejamento">
+<section id="dieta">
 <div class="card">
-<h3>Planejamento Semanal</h3>
-<input id="diaSemana" placeholder="Dia da semana">
-<input id="refSemana" placeholder="Refeição">
-<button class="action" onclick="salvarPlano()">Salvar</button>
-<ul id="listaPlano"></ul>
+<input id="pesoIMC" placeholder="Peso">
+<input id="alturaIMC" placeholder="Altura">
+<select id="objetivo">
+<option>Emagrecer</option>
+<option>Manter</option>
+<option>Ganhar massa</option>
+</select>
+<button onclick="gerarDieta()">Gerar Dieta</button>
+<p id="dietaResultado"></p>
 </div>
 </section>
 
 <section id="treino">
 <div class="card">
-<h3>Treino da Semana</h3>
-<button class="action" onclick="gerarTreino()">Gerar Treino</button>
+<button onclick="gerarTreino()">Gerar Treino Semanal</button>
 <ul id="listaTreino"></ul>
+</div>
+</section>
+
+<section id="peso">
+<div class="card">
+<input id="novoPeso" placeholder="Novo peso">
+<button onclick="salvarPeso()">Salvar</button>
+<canvas id="graficoPeso"></canvas>
 </div>
 </section>
 
 <section id="lembrete">
 <div class="card">
-<h3>Lembrete</h3>
-<input id="tempoLembrete" placeholder="Intervalo em minutos">
-<button class="action" onclick="iniciarLembrete()">Iniciar</button>
-</div>
-</section>
-
-<section id="progresso">
-<div class="card">
-<h3>Histórico de Peso</h3>
-<input id="novoPeso" placeholder="Novo peso">
-<button class="action" onclick="salvarPeso()">Salvar</button>
-<ul id="listaPeso"></ul>
+<input id="minutos" placeholder="Intervalo em minutos">
+<button onclick="iniciarLembrete()">Ativar</button>
 </div>
 </section>
 
@@ -96,81 +83,75 @@ document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 }
 
-function toggleDark(){
-document.body.classList.toggle("dark");
-}
-
+/* BANCO GRANDE DE ALIMENTOS */
 const alimentos={
-Arroz:130,Feijão:77,Frango:165,Carne:250,Ovo:155,
-Batata:86,Macarrão:158,Banana:89,Maçã:52,
-Pão:265,Leite:42,Queijo:402,Aveia:389
+"Arroz":130,"Feijão":77,"Frango":165,"Carne":250,"Ovo":155,
+"Macarrão":158,"Banana":89,"Maçã":52,"Leite":42,"Queijo":402,
+"Aveia":389,"Batata":86,"Batata doce":90,"Peixe":206,"Salmão":208,
+"Atum":132,"Pão":265,"Iogurte":59,"Abacate":160,"Amendoim":567,
+"Castanha":553,"Brócolis":34,"Cenoura":41,"Tomate":18,"Alface":15
 };
 
 const select=document.getElementById("alimento");
-for(let item in alimentos){
-let opt=document.createElement("option");
-opt.text=item;
-select.add(opt);
-}
+for(let a in alimentos){let o=document.createElement("option");o.text=a;select.add(o);}
 
-let total=0;
+let refeicoes=JSON.parse(localStorage.getItem("refeicoes")||"[]");
+
+function salvarLS(){localStorage.setItem("refeicoes",JSON.stringify(refeicoes));}
 
 function addComida(){
 let comida=select.value;
-let qtd=document.getElementById("quantidade").value;
+let qtd=quantidade.value;
 let cal=(alimentos[comida]*qtd)/100;
-total+=cal;
-
-let li=document.createElement("li");
-li.innerHTML=comida+" - "+cal.toFixed(1)+" kcal <button class='delete' onclick='remover(this,"+cal+")'>X</button>";
-document.getElementById("listaComidas").appendChild(li);
-
-document.getElementById("totalRefeicao").innerText="Total: "+total.toFixed(1)+" kcal";
+refeicoes.push({comida,qtd,cal});
+salvarLS();
+renderRefeicoes();
 }
 
-function remover(btn,cal){
-total-=cal;
-btn.parentElement.remove();
-document.getElementById("totalRefeicao").innerText="Total: "+total.toFixed(1)+" kcal";
+function renderRefeicoes(){
+listaComidas.innerHTML="";
+let total=0;
+refeicoes.forEach((r,i)=>{
+total+=r.cal;
+listaComidas.innerHTML+=`<li>${r.comida} ${r.cal.toFixed(1)} kcal 
+<button class='delete' onclick='delComida(${i})'>X</button></li>`;
+});
+totalRefeicao.innerText="Total: "+total.toFixed(1)+" kcal";
 }
 
-function calcIMC(){
-let p=peso.value;
-let a=altura.value;
-let imc=(p/(a*a)).toFixed(1);
-imcResultado.innerText="IMC: "+imc;
+function delComida(i){refeicoes.splice(i,1);salvarLS();renderRefeicoes();}
+renderRefeicoes();
+
+/* DIETA AUTOMÁTICA */
+function gerarDieta(){
+let p=pesoIMC.value,a=alturaIMC.value;
+let imc=p/(a*a);
+let cal=imc<18?2500:imc<25?2000:1600;
+dietaResultado.innerText="Calorias sugeridas/dia: "+cal;
 }
 
-function salvarPlano(){
-let dia=diaSemana.value;
-let ref=refSemana.value;
-let li=document.createElement("li");
-li.innerHTML=dia+" - "+ref+" <button class='delete' onclick='this.parentElement.remove()'>X</button>";
-listaPlano.appendChild(li);
-}
-
+/* TREINO */
 function gerarTreino(){
-let treinos=["Agachamento","Flexão","Abdominal","Rosca bíceps","Remada"];
-listaTreino.innerHTML="";
-treinos.forEach(t=>{
-let li=document.createElement("li");
-li.innerHTML=t+" <button class='delete' onclick='this.parentElement.remove()'>X</button>";
-listaTreino.appendChild(li);
+let dias=["Seg: Pernas","Ter: Peito","Qua: Costas","Qui: Ombro","Sex: Braços"];
+listaTreino.innerHTML=dias.map(d=>"<li>"+d+"</li>").join("");
+}
+
+/* PESO + GRÁFICO */
+let pesos=JSON.parse(localStorage.getItem("pesos")||"[]");
+function salvarPeso(){
+pesos.push(novoPeso.value);
+localStorage.setItem("pesos",JSON.stringify(pesos));
+grafico.update();
+}
+const ctx=document.getElementById('graficoPeso');
+const grafico=new Chart(ctx,{type:'line',data:{labels:pesos.map((_,i)=>i+1),datasets:[{label:'Peso',data:pesos}]}});
+
+/* LEMBRETE */
+function iniciarLembrete(){
+Notification.requestPermission().then(()=>{
+setInterval(()=>new Notification("Hora do lembrete!"),minutos.value*60000);
 });
 }
-
-function iniciarLembrete(){
-let tempo=tempoLembrete.value*60000;
-setInterval(()=>alert("Hora do lembrete!"),tempo);
-}
-
-function salvarPeso(){
-let p=novoPeso.value;
-let li=document.createElement("li");
-li.innerHTML=p+" kg <button class='delete' onclick='this.parentElement.remove()'>X</button>";
-listaPeso.appendChild(li);
-}
 </script>
-
 </body>
 </html>

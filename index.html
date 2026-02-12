@@ -4,96 +4,173 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vida Saudável</title>
+<title>Vida Saudável Pro</title>
 <style>
-body{font-family:Arial;margin:0;padding:0;background:#f4f4f4}
-header{background:#2e7d32;color:white;padding:15px;text-align:center}
-section{padding:15px}
-button{padding:10px;margin:5px;border:none;background:#2e7d32;color:white;border-radius:5px}
-input,select{padding:8px;margin:5px;width:95%}
+body{margin:0;font-family:Arial;background:#f2f2f2}
+header{background:#1b5e20;color:white;padding:15px;text-align:center}
+nav{display:flex;overflow:auto;background:#2e7d32}
+nav button{flex:1;padding:10px;border:none;background:#2e7d32;color:white}
+nav button:hover{background:#1b5e20}
+section{display:none;padding:15px}
+.active{display:block}
 .card{background:white;padding:10px;margin:10px 0;border-radius:8px;box-shadow:0 0 5px #ccc}
+input,select{padding:8px;margin:5px 0;width:100%}
+button.action{background:#2e7d32;color:white;padding:8px;border:none;border-radius:5px;margin-top:5px}
+.delete{background:#c62828}
 .dark{background:#121212;color:white}
 </style>
 </head>
 <body>
 
-<header>
-<h2>App Vida Saudável</h2>
-</header>
+<header><h2>Vida Saudável PRO</h2></header>
 
-<section class="card">
-<h3>⚖ Calcular IMC</h3>
+<nav>
+<button onclick="showTab('inicio')">🏠</button>
+<button onclick="showTab('refeicoes')">🥗</button>
+<button onclick="showTab('planejamento')">📅</button>
+<button onclick="showTab('treino')">🏋</button>
+<button onclick="showTab('lembrete')">⏰</button>
+<button onclick="showTab('progresso')">📊</button>
+</nav>
+
+<section id="inicio" class="active">
+<div class="card">
+<h3>Calcular IMC</h3>
 <input id="peso" placeholder="Peso (kg)">
 <input id="altura" placeholder="Altura (m)">
-<button onclick="calcIMC()">Calcular</button>
+<button class="action" onclick="calcIMC()">Calcular</button>
 <p id="imcResultado"></p>
+</div>
+<button class="action" onclick="toggleDark()">Modo Escuro</button>
 </section>
 
-<section class="card">
-<h3>🥗 Montar Refeição</h3>
+<section id="refeicoes">
+<div class="card">
+<h3>Montar Refeição</h3>
 <select id="alimento"></select>
 <input id="quantidade" placeholder="Quantidade (g)">
-<button onclick="addComida()">Adicionar</button>
-<p id="totalRefeicao">Calorias da refeição: 0</p>
+<button class="action" onclick="addComida()">Adicionar</button>
+<p id="totalRefeicao">Total: 0 kcal</p>
+<ul id="listaComidas"></ul>
+</div>
 </section>
 
-<section class="card">
-<h3>🏋 Treinos</h3>
-<p><b>Corpo livre</b>: Agachamento, Flexão, Abdominal, Prancha, Polichinelo</p>
-<p><b>Com halteres</b>: Rosca bíceps, Desenvolvimento, Remada, Afundo</p>
+<section id="planejamento">
+<div class="card">
+<h3>Planejamento Semanal</h3>
+<input id="diaSemana" placeholder="Dia da semana">
+<input id="refSemana" placeholder="Refeição">
+<button class="action" onclick="salvarPlano()">Salvar</button>
+<ul id="listaPlano"></ul>
+</div>
 </section>
 
-<section class="card">
-<h3>⏰ Lembretes</h3>
-<button onclick="alert('Hora de beber água 💧')">Água</button>
-<button onclick="alert('Hora de comer 🍽')">Refeição</button>
-<button onclick="alert('Hora de dormir 😴')">Dormir</button>
+<section id="treino">
+<div class="card">
+<h3>Treino da Semana</h3>
+<button class="action" onclick="gerarTreino()">Gerar Treino</button>
+<ul id="listaTreino"></ul>
+</div>
 </section>
 
-<section class="card">
-<h3>🌙 Modo escuro</h3>
-<button onclick="document.body.classList.toggle('dark')">Ativar</button>
+<section id="lembrete">
+<div class="card">
+<h3>Lembrete</h3>
+<input id="tempoLembrete" placeholder="Intervalo em minutos">
+<button class="action" onclick="iniciarLembrete()">Iniciar</button>
+</div>
+</section>
+
+<section id="progresso">
+<div class="card">
+<h3>Histórico de Peso</h3>
+<input id="novoPeso" placeholder="Novo peso">
+<button class="action" onclick="salvarPeso()">Salvar</button>
+<ul id="listaPeso"></ul>
+</div>
 </section>
 
 <script>
-const alimentos = {
-"Arroz":130,"Feijão":77,"Frango":165,"Carne":250,"Ovo":155,
-"Batata":86,"Batata doce":90,"Macarrão":158,"Banana":89,
-"Maçã":52,"Pão":265,"Leite":42,"Queijo":402,"Iogurte":59,
-"Abacate":160,"Aveia":389,"Brócolis":34,"Cenoura":41,
-"Peixe":206,"Salmão":208,"Atum":132,"Amendoim":567,
-"Castanha":553,"Chocolate":546,"Refrigerante":41
+function showTab(id){
+document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+}
+
+function toggleDark(){
+document.body.classList.toggle("dark");
+}
+
+const alimentos={
+Arroz:130,Feijão:77,Frango:165,Carne:250,Ovo:155,
+Batata:86,Macarrão:158,Banana:89,Maçã:52,
+Pão:265,Leite:42,Queijo:402,Aveia:389
 };
 
-const select = document.getElementById("alimento");
+const select=document.getElementById("alimento");
 for(let item in alimentos){
-let opt = document.createElement("option");
-opt.text = item;
+let opt=document.createElement("option");
+opt.text=item;
 select.add(opt);
 }
 
-let total = 0;
+let total=0;
 
 function addComida(){
-let comida = select.value;
-let qtd = document.getElementById("quantidade").value;
-let cal = (alimentos[comida] * qtd) / 100;
-total += cal;
-document.getElementById("totalRefeicao").innerText = 
-"Calorias da refeição: " + total.toFixed(1) + " kcal";
+let comida=select.value;
+let qtd=document.getElementById("quantidade").value;
+let cal=(alimentos[comida]*qtd)/100;
+total+=cal;
+
+let li=document.createElement("li");
+li.innerHTML=comida+" - "+cal.toFixed(1)+" kcal <button class='delete' onclick='remover(this,"+cal+")'>X</button>";
+document.getElementById("listaComidas").appendChild(li);
+
+document.getElementById("totalRefeicao").innerText="Total: "+total.toFixed(1)+" kcal";
+}
+
+function remover(btn,cal){
+total-=cal;
+btn.parentElement.remove();
+document.getElementById("totalRefeicao").innerText="Total: "+total.toFixed(1)+" kcal";
 }
 
 function calcIMC(){
-let p = peso.value;
-let a = altura.value;
-let imc = (p/(a*a)).toFixed(1);
-imcResultado.innerText = "Seu IMC é " + imc;
+let p=peso.value;
+let a=altura.value;
+let imc=(p/(a*a)).toFixed(1);
+imcResultado.innerText="IMC: "+imc;
+}
+
+function salvarPlano(){
+let dia=diaSemana.value;
+let ref=refSemana.value;
+let li=document.createElement("li");
+li.innerHTML=dia+" - "+ref+" <button class='delete' onclick='this.parentElement.remove()'>X</button>";
+listaPlano.appendChild(li);
+}
+
+function gerarTreino(){
+let treinos=["Agachamento","Flexão","Abdominal","Rosca bíceps","Remada"];
+listaTreino.innerHTML="";
+treinos.forEach(t=>{
+let li=document.createElement("li");
+li.innerHTML=t+" <button class='delete' onclick='this.parentElement.remove()'>X</button>";
+listaTreino.appendChild(li);
+});
+}
+
+function iniciarLembrete(){
+let tempo=tempoLembrete.value*60000;
+setInterval(()=>alert("Hora do lembrete!"),tempo);
+}
+
+function salvarPeso(){
+let p=novoPeso.value;
+let li=document.createElement("li");
+li.innerHTML=p+" kg <button class='delete' onclick='this.parentElement.remove()'>X</button>";
+listaPeso.appendChild(li);
 }
 </script>
 
 </body>
 </html>
-
-
-
-

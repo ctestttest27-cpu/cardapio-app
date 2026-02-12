@@ -1,146 +1,104 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vida Saudável PRO</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Vida Saudável - Dieta e Treino</title>
 
-<style>
-body{margin:0;font-family:Arial;background:#121212;color:white}
-header{background:#00c853;padding:15px;text-align:center;font-size:20px}
-nav{display:flex;background:#000}
-nav button{flex:1;padding:12px;background:#000;color:white;border:none}
-section{display:none;padding:15px}
-section.active{display:block}
-.card{background:#1e1e1e;padding:12px;border-radius:10px;margin:10px 0}
-input,select{width:100%;padding:10px;margin:5px 0;border:none;border-radius:5px}
-button{padding:10px;border:none;border-radius:6px;margin-top:5px;background:#00c853;color:white}
-ul{padding:0}
-li{list-style:none;background:#2a2a2a;margin:5px 0;padding:8px;border-radius:6px}
-.smallbtn{padding:5px 8px;margin-left:5px;font-size:12px}
-</style>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1b5e20">
+
+  <!-- Ícone para navegador -->
+  <link rel="icon" href="icon-192.png">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+    }
+
+    header {
+      background: #1b5e20;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    main {
+      padding: 15px;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    button {
+      background: #1b5e20;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    button:hover {
+      background: #145a1a;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>Vida Saudável PRO</header>
+<header>
+  Vida Saudável - Dieta e Treino
+</header>
 
-<div id="loginTela" class="card">
-<h3>Entrar</h3>
-<input id="nomeUser" placeholder="Seu nome">
-<button onclick="login()">Entrar</button>
-</div>
+<main>
 
-<div id="app" style="display:none">
+  <div class="card">
+    <h3>🍎 Refeições</h3>
+    <p>Monte suas refeições e calcule calorias.</p>
+  </div>
 
-<nav>
-<button onclick="showTab('refeicao')">🍽</button>
-<button onclick="showTab('dieta')">📊</button>
-<button onclick="showTab('treino')">🏋</button>
-<button onclick="showTab('peso')">⚖</button>
-<button onclick="showTab('lembrete')">⏰</button>
-</nav>
+  <div class="card">
+    <h3>🏋️ Treino</h3>
+    <p>Treinos em casa com peso corporal e halteres.</p>
+  </div>
 
-<section id="refeicao" class="active">
-<div class="card">
-<select id="alimento"></select>
-<input type="number" id="quantidade" placeholder="Quantidade (g)">
-<button onclick="addComida()">Adicionar</button>
-<ul id="listaComidas"></ul>
-<h3 id="totalRefeicao"></h3>
-</div>
-</section>
+  <div class="card">
+    <h3>💧 Lembretes</h3>
+    <p>Água, refeições e horário de dormir.</p>
+  </div>
 
-<section id="dieta">
-<div class="card">
-<input type="number" id="pesoIMC" placeholder="Peso">
-<input type="number" id="alturaIMC" placeholder="Altura">
-<button onclick="gerarDieta()">Gerar Dieta</button>
-<div id="dietaResultado"></div>
-</div>
-</section>
+  <div class="card">
+    <h3>⚖️ Controle de Peso</h3>
+    <p>Acompanhe seu progresso com gráfico.</p>
+  </div>
 
-<section id="treino">
-<div class="card">
-<select id="diaTreino">
-<option>Segunda</option><option>Terça</option><option>Quarta</option>
-<option>Quinta</option><option>Sexta</option><option>Sábado</option><option>Domingo</option>
-</select>
-<input id="nomeTreino" placeholder="Nome do treino">
-<input id="linkTreino" placeholder="Link do vídeo">
-<button onclick="addTreino()">Adicionar Treino</button>
-<ul id="listaTreino"></ul>
-</div>
-</section>
-
-<section id="peso">
-<div class="card">
-<input type="number" id="novoPeso" placeholder="Novo peso">
-<button onclick="salvarPeso()">Salvar</button>
-<canvas id="graficoPeso"></canvas>
-</div>
-</section>
-
-<section id="lembrete">
-<div class="card">
-<input id="aguaMin" placeholder="Água (min)">
-<button onclick="ativarAgua()">Água</button>
-
-<input id="comidaMin" placeholder="Refeição (min)">
-<button onclick="ativarComida()">Refeição</button>
-
-<input id="treinoMin" placeholder="Treino (min)">
-<button onclick="ativarTreino()">Treino</button>
-
-<input id="sonoMin" placeholder="Dormir (min)">
-<button onclick="ativarSono()">Dormir</button>
-</div>
-</section>
-
-</div>
+</main>
 
 <script>
-document.addEventListener("DOMContentLoaded",function(){
-
-if(localStorage.getItem("user")){loginTela.style.display="none";app.style.display="block";}
-window.login=function(){localStorage.setItem("user",nomeUser.value);loginTela.style.display="none";app.style.display="block";}
-
-window.showTab=id=>{document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");}
-
-const alimentos={"Arroz":130,"Feijão":77,"Frango":165,"Carne":250,"Ovo":155,"Macarrão":158,"Banana":89,"Maçã":52,"Leite":42,"Aveia":389,"Batata":86};
-for(let a in alimentos){let o=document.createElement("option");o.text=a;alimento.add(o);}
-
-let refeicoes=JSON.parse(localStorage.getItem("refeicoes")||"[]");
-function salvarR(){localStorage.setItem("refeicoes",JSON.stringify(refeicoes));}
-window.addComida=function(){let qtd=quantidade.value;if(!qtd)return;let cal=(alimentos[alimento.value]*qtd)/100;refeicoes.push({comida:alimento.value,qtd,cal});salvarR();renderR();}
-window.delComida=i=>{refeicoes.splice(i,1);salvarR();renderR();}
-window.editarComida=i=>{let n=prompt("Nova qtd:",refeicoes[i].qtd);if(!n)return;refeicoes[i].qtd=n;refeicoes[i].cal=(alimentos[refeicoes[i].comida]*n)/100;salvarR();renderR();}
-function renderR(){listaComidas.innerHTML="";let t=0;refeicoes.forEach((r,i)=>{t+=r.cal;listaComidas.innerHTML+=`<li>${r.comida} ${r.qtd}g ${r.cal.toFixed(1)}kcal<button class="smallbtn" onclick="editarComida(${i})">✏️</button><button class="smallbtn" onclick="delComida(${i})">❌</button></li>`});totalRefeicao.innerText="Total: "+t.toFixed(1)+" kcal";}
-renderR();
-
-window.gerarDieta=function(){let imc=pesoIMC.value/(alturaIMC.value*alturaIMC.value);let cal=imc<18?2500:imc<25?2000:1600;dietaResultado.innerHTML="IMC "+imc.toFixed(1)+"<br>Calorias "+cal;}
-
-let treinos=JSON.parse(localStorage.getItem("treinos")||"[]");
-function salvarTreinos(){localStorage.setItem("treinos",JSON.stringify(treinos));}
-window.addTreino=function(){treinos.push({dia:diaTreino.value,nome:nomeTreino.value,link:linkTreino.value});salvarTreinos();renderTreinos();}
-window.editarTreino=i=>{let n=prompt("Novo link:",treinos[i].link);if(!n)return;treinos[i].link=n;salvarTreinos();renderTreinos();}
-window.delTreino=i=>{treinos.splice(i,1);salvarTreinos();renderTreinos();}
-function renderTreinos(){listaTreino.innerHTML="";treinos.forEach((t,i)=>{listaTreino.innerHTML+=`<li><b>${t.dia}</b> - ${t.nome}<a href="${t.link}" target="_blank"><button>Abrir</button></a><button class="smallbtn" onclick="editarTreino(${i})">✏️</button><button class="smallbtn" onclick="delTreino(${i})">❌</button></li>`});}
-renderTreinos();
-
-let pesos=JSON.parse(localStorage.getItem("pesos")||[]);
-window.salvarPeso=function(){pesos.push(novoPeso.value);localStorage.setItem("pesos",JSON.stringify(pesos));grafico.update();}
-const grafico=new Chart(graficoPeso,{type:'line',data:{labels:pesos.map((_,i)=>i+1),datasets:[{label:'Peso',data:pesos}]}});
-
-function criarLembrete(msg,min){return setInterval(()=>new Notification(msg),min*60000);}
-let a,c,t,s;
-window.ativarAgua=()=>Notification.requestPermission().then(()=>{clearInterval(a);a=criarLembrete("Beber água 💧",aguaMin.value);});
-window.ativarComida=()=>Notification.requestPermission().then(()=>{clearInterval(c);c=criarLembrete("Hora de comer 🍽",comidaMin.value);});
-window.ativarTreino=()=>Notification.requestPermission().then(()=>{clearInterval(t);t=criarLembrete("Hora do treino 🏋",treinoMin.value);});
-window.ativarSono=()=>Notification.requestPermission().then(()=>{clearInterval(s);s=criarLembrete("Hora de dormir 😴",sonoMin.value);});
-
-});
+  // Registrar Service Worker
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function() {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(function(registration) {
+          console.log("Service Worker registrado com sucesso:", registration.scope);
+        })
+        .catch(function(error) {
+          console.log("Erro ao registrar Service Worker:", error);
+        });
+    });
+  }
 </script>
 
 </body>

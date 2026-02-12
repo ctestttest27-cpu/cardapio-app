@@ -1,157 +1,210 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vida Saudável PRO+</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-body{margin:0;font-family:Arial;background:#f2f2f2}
-header{background:#1b5e20;color:white;padding:15px;text-align:center}
-nav{display:flex;overflow:auto;background:#2e7d32}
-nav button{flex:1;padding:10px;border:none;background:#2e7d32;color:white}
-section{display:none;padding:15px}
-.active{display:block}
-.card{background:white;padding:10px;margin:10px 0;border-radius:8px;box-shadow:0 0 5px #ccc}
-input,select{padding:8px;margin:5px 0;width:100%}
-button{padding:8px;border:none;border-radius:5px;margin-top:5px}
-.delete{background:#c62828;color:white}
-.edit{background:#f9a825;color:white}
-</style>
-</head>
-<body>
-
-<header><h2>Vida Saudável PRO+</h2></header>
-
-<nav>
-<button onclick="showTab('refeicoes')">🥗</button>
-<button onclick="showTab('dieta')">📊</button>
-<button onclick="showTab('treino')">🏋</button>
-<button onclick="showTab('peso')">⚖</button>
-<button onclick="showTab('lembrete')">⏰</button>
-</nav>
-
-<section id="refeicoes" class="active">
-<div class="card">
-<select id="alimento"></select>
-<input id="quantidade" placeholder="Quantidade (g)">
-<button onclick="addComida()">Adicionar</button>
-<p id="totalRefeicao"></p>
-<ul id="listaComidas"></ul>
-</div>
-</section>
-
-<section id="dieta">
-<div class="card">
-<input id="pesoIMC" placeholder="Peso">
-<input id="alturaIMC" placeholder="Altura">
-<select id="objetivo">
-<option>Emagrecer</option>
-<option>Manter</option>
-<option>Ganhar massa</option>
-</select>
-<button onclick="gerarDieta()">Gerar Dieta</button>
-<p id="dietaResultado"></p>
-</div>
-</section>
-
-<section id="treino">
-<div class="card">
-<button onclick="gerarTreino()">Gerar Treino Semanal</button>
-<ul id="listaTreino"></ul>
-</div>
-</section>
-
-<section id="peso">
-<div class="card">
-<input id="novoPeso" placeholder="Novo peso">
-<button onclick="salvarPeso()">Salvar</button>
-<canvas id="graficoPeso"></canvas>
-</div>
-</section>
-
-<section id="lembrete">
-<div class="card">
-<input id="minutos" placeholder="Intervalo em minutos">
-<button onclick="iniciarLembrete()">Ativar</button>
-</div>
-</section>
-
 <script>
+
+/* ================= TROCA DE ABAS ================= */
 function showTab(id){
 document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 }
 
-/* BANCO GRANDE DE ALIMENTOS */
+/* ================= BANCO DE ALIMENTOS COMPLETO ================= */
+/* valores por 100g */
 const alimentos={
-"Arroz":130,"Feijão":77,"Frango":165,"Carne":250,"Ovo":155,
-"Macarrão":158,"Banana":89,"Maçã":52,"Leite":42,"Queijo":402,
-"Aveia":389,"Batata":86,"Batata doce":90,"Peixe":206,"Salmão":208,
-"Atum":132,"Pão":265,"Iogurte":59,"Abacate":160,"Amendoim":567,
-"Castanha":553,"Brócolis":34,"Cenoura":41,"Tomate":18,"Alface":15
+"Arroz":{cal:130,p:2.5,c:28,g:0.3},
+"Feijão":{cal:77,p:5,c:14,g:0.5},
+"Frango":{cal:165,p:31,c:0,g:3.6},
+"Carne":{cal:250,p:26,c:0,g:15},
+"Ovo":{cal:155,p:13,c:1,g:11},
+"Macarrão":{cal:158,p:6,c:30,g:1},
+"Banana":{cal:89,p:1,c:23,g:0.3},
+"Maçã":{cal:52,p:0.3,c:14,g:0.2},
+"Leite":{cal:42,p:3.4,c:5,g:1},
+"Queijo":{cal:402,p:25,c:1,g:33},
+"Aveia":{cal:389,p:17,c:66,g:7},
+"Batata":{cal:86,p:2,c:20,g:0.1},
+"Peixe":{cal:206,p:22,c:0,g:12},
+"Pão":{cal:265,p:9,c:49,g:3},
+"Iogurte":{cal:59,p:10,c:3,g:0.4},
+"Chocolate":{cal:546,p:5,c:61,g:31},
+"Pizza":{cal:266,p:11,c:33,g:10}
 };
 
 const select=document.getElementById("alimento");
-for(let a in alimentos){let o=document.createElement("option");o.text=a;select.add(o);}
+for(let a in alimentos){
+let o=document.createElement("option");
+o.text=a;
+select.add(o);
+}
 
+/* ================= REFEIÇÕES ================= */
 let refeicoes=JSON.parse(localStorage.getItem("refeicoes")||"[]");
 
-function salvarLS(){localStorage.setItem("refeicoes",JSON.stringify(refeicoes));}
+function salvarRefeicoes(){localStorage.setItem("refeicoes",JSON.stringify(refeicoes));}
 
 function addComida(){
 let comida=select.value;
-let qtd=quantidade.value;
-let cal=(alimentos[comida]*qtd)/100;
-refeicoes.push({comida,qtd,cal});
-salvarLS();
+let qtd=parseFloat(quantidade.value);
+if(!qtd) return;
+
+let base=alimentos[comida];
+let item={
+comida,
+qtd,
+cal:(base.cal*qtd)/100,
+p:(base.p*qtd)/100,
+c:(base.c*qtd)/100,
+g:(base.g*qtd)/100
+};
+
+refeicoes.push(item);
+salvarRefeicoes();
 renderRefeicoes();
 }
 
 function renderRefeicoes(){
 listaComidas.innerHTML="";
-let total=0;
+let total={cal:0,p:0,c:0,g:0};
+
 refeicoes.forEach((r,i)=>{
-total+=r.cal;
-listaComidas.innerHTML+=`<li>${r.comida} ${r.cal.toFixed(1)} kcal 
-<button class='delete' onclick='delComida(${i})'>X</button></li>`;
+total.cal+=r.cal;
+total.p+=r.p;
+total.c+=r.c;
+total.g+=r.g;
+
+listaComidas.innerHTML+=`
+<li>
+${r.comida} ${r.qtd}g  
+🔥${r.cal.toFixed(1)}kcal  
+🥩${r.p.toFixed(1)}P  
+🍞${r.c.toFixed(1)}C  
+🥑${r.g.toFixed(1)}G
+<button class='edit' onclick='editarComida(${i})'>Editar</button>
+<button class='delete' onclick='delComida(${i})'>X</button>
+</li>`;
 });
-totalRefeicao.innerText="Total: "+total.toFixed(1)+" kcal";
+
+totalRefeicao.innerHTML=
+`🔥 ${total.cal.toFixed(1)} kcal |
+🥩 ${total.p.toFixed(1)}g |
+🍞 ${total.c.toFixed(1)}g |
+🥑 ${total.g.toFixed(1)}g`;
 }
 
-function delComida(i){refeicoes.splice(i,1);salvarLS();renderRefeicoes();}
+function delComida(i){refeicoes.splice(i,1);salvarRefeicoes();renderRefeicoes();}
+
+function editarComida(i){
+let nova=prompt("Nova quantidade (g):",refeicoes[i].qtd);
+if(!nova) return;
+let base=alimentos[refeicoes[i].comida];
+refeicoes[i].qtd=nova;
+refeicoes[i].cal=(base.cal*nova)/100;
+refeicoes[i].p=(base.p*nova)/100;
+refeicoes[i].c=(base.c*nova)/100;
+refeicoes[i].g=(base.g*nova)/100;
+salvarRefeicoes();
+renderRefeicoes();
+}
 renderRefeicoes();
 
-/* DIETA AUTOMÁTICA */
+/* ================= DIETA AUTOMÁTICA ================= */
 function gerarDieta(){
 let p=pesoIMC.value,a=alturaIMC.value;
 let imc=p/(a*a);
-let cal=imc<18?2500:imc<25?2000:1600;
-dietaResultado.innerText="Calorias sugeridas/dia: "+cal;
+let base=imc<18.5?2500:imc<25?2000:1600;
+
+let prot=p*2;
+let gord=(base*0.25)/9;
+let carb=(base-(prot*4+gord*9))/4;
+
+dietaResultado.innerHTML=`
+IMC: ${imc.toFixed(1)}<br>
+Calorias: ${base} kcal<br>
+Proteína: ${prot.toFixed(0)}g<br>
+Carboidratos: ${carb.toFixed(0)}g<br>
+Gorduras: ${gord.toFixed(0)}g`;
 }
 
-/* TREINO */
+/* ================= TREINO ================= */
+let treino=JSON.parse(localStorage.getItem("treino")||[
+"Seg: Pernas",
+"Ter: Peito",
+"Qua: Costas",
+"Qui: Ombro",
+"Sex: Braços"
+]);
+
 function gerarTreino(){
-let dias=["Seg: Pernas","Ter: Peito","Qua: Costas","Qui: Ombro","Sex: Braços"];
-listaTreino.innerHTML=dias.map(d=>"<li>"+d+"</li>").join("");
+localStorage.setItem("treino",JSON.stringify(treino));
+renderTreino();
 }
+function renderTreino(){
+listaTreino.innerHTML="";
+treino.forEach((t,i)=>{
+listaTreino.innerHTML+=`<li>${t}
+<button class='edit' onclick='editarTreino(${i})'>Editar</button>
+<button class='delete' onclick='delTreino(${i})'>X</button></li>`;
+});
+}
+function editarTreino(i){
+let n=prompt("Editar treino:",treino[i]);
+if(!n)return;
+treino[i]=n;
+localStorage.setItem("treino",JSON.stringify(treino));
+renderTreino();
+}
+function delTreino(i){
+treino.splice(i,1);
+localStorage.setItem("treino",JSON.stringify(treino));
+renderTreino();
+}
+renderTreino();
 
-/* PESO + GRÁFICO */
-let pesos=JSON.parse(localStorage.getItem("pesos")||"[]");
+/* ================= PLANO SEMANAL ================= */
+let plano=JSON.parse(localStorage.getItem("plano")||[]);
+function addPlano(){
+plano.push({dia:diaSemana.value,desc:refSemana.value});
+localStorage.setItem("plano",JSON.stringify(plano));
+renderPlano();
+}
+function renderPlano(){
+listaPlano.innerHTML="";
+plano.forEach((p,i)=>{
+listaPlano.innerHTML+=`<li>${p.dia} - ${p.desc}
+<button class='edit' onclick='editarPlano(${i})'>Editar</button>
+<button class='delete' onclick='delPlano(${i})'>X</button></li>`;
+});
+}
+function editarPlano(i){
+let n=prompt("Editar:",plano[i].desc);
+plano[i].desc=n;
+localStorage.setItem("plano",JSON.stringify(plano));
+renderPlano();
+}
+function delPlano(i){
+plano.splice(i,1);
+localStorage.setItem("plano",JSON.stringify(plano));
+renderPlano();
+}
+renderPlano();
+
+/* ================= GRÁFICO PESO ================= */
+let pesos=JSON.parse(localStorage.getItem("pesos")||[]);
 function salvarPeso(){
 pesos.push(novoPeso.value);
 localStorage.setItem("pesos",JSON.stringify(pesos));
 grafico.update();
 }
-const ctx=document.getElementById('graficoPeso');
-const grafico=new Chart(ctx,{type:'line',data:{labels:pesos.map((_,i)=>i+1),datasets:[{label:'Peso',data:pesos}]}});
+const grafico=new Chart(graficoPeso,{
+type:'line',
+data:{labels:pesos.map((_,i)=>i+1),datasets:[{label:'Peso',data:pesos}]}
+});
 
-/* LEMBRETE */
+/* ================= LEMBRETES ================= */
+let intervalo;
 function iniciarLembrete(){
 Notification.requestPermission().then(()=>{
-setInterval(()=>new Notification("Hora do lembrete!"),minutos.value*60000);
+clearInterval(intervalo);
+intervalo=setInterval(()=>new Notification("Hora do lembrete!"),minutos.value*60000);
 });
 }
+
 </script>
-</body>
-</html>

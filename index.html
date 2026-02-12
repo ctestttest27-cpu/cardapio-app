@@ -3,188 +3,172 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meu App Fitness</title>
-
+<title>Vida Saudável PRO</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{font-family:Arial;margin:0;background:#f4f4f4}
-nav{display:flex;flex-wrap:wrap;background:#111}
-nav button{flex:1;padding:10px;color:white;background:#111;border:none}
-nav button:hover{background:#333}
+:root{
+--bg:#121212;
+--card:#1e1e1e;
+--green:#00c853;
+--text:#ffffff;
+}
+body{margin:0;font-family:Arial;background:var(--bg);color:var(--text)}
+header{background:var(--green);padding:15px;text-align:center;font-size:20px}
+nav{display:flex;background:#000}
+nav button{flex:1;padding:12px;background:#000;color:white;border:none;font-size:16px}
 section{display:none;padding:15px}
 section.active{display:block}
-input,select,button{margin:5px 0;padding:5px}
+.card{background:var(--card);padding:12px;border-radius:10px;margin:10px 0}
+input,select{width:100%;padding:10px;margin:5px 0;border:none;border-radius:5px}
+button{padding:10px;border:none;border-radius:6px;margin-top:5px;background:var(--green);color:white}
 ul{padding:0}
-li{list-style:none;background:white;margin:5px 0;padding:5px;border-radius:5px}
-button{cursor:pointer}
+li{list-style:none;background:#2a2a2a;margin:5px 0;padding:8px;border-radius:6px}
+.smallbtn{padding:5px 8px;margin-left:5px;font-size:12px}
 </style>
 </head>
 
 <body>
 
+<header>Vida Saudável PRO</header>
+
+<div id="loginTela" class="card">
+<h3>Entrar</h3>
+<input id="nomeUser" placeholder="Seu nome">
+<button onclick="login()">Entrar</button>
+</div>
+
+<div id="app" style="display:none">
+
 <nav>
-<button onclick="showTab('refeicao')">Refeições</button>
-<button onclick="showTab('dieta')">Dieta</button>
-<button onclick="showTab('treino')">Treino</button>
-<button onclick="showTab('peso')">Peso</button>
-<button onclick="showTab('lembrete')">Lembrete</button>
+<button onclick="showTab('refeicao')">🍽</button>
+<button onclick="showTab('dieta')">📊</button>
+<button onclick="showTab('treino')">🏋</button>
+<button onclick="showTab('peso')">⚖</button>
+<button onclick="showTab('lembrete')">⏰</button>
 </nav>
 
-<!-- REFEIÇÕES -->
 <section id="refeicao" class="active">
-<h2>Montar Refeição</h2>
+<div class="card">
 <select id="alimento"></select>
 <input type="number" id="quantidade" placeholder="Quantidade (g)">
 <button onclick="addComida()">Adicionar</button>
 <ul id="listaComidas"></ul>
 <h3 id="totalRefeicao"></h3>
+</div>
 </section>
 
-<!-- DIETA -->
 <section id="dieta">
-<h2>Dieta Automática</h2>
-<input type="number" id="pesoIMC" placeholder="Peso (kg)">
-<input type="number" id="alturaIMC" placeholder="Altura (m)">
-<button onclick="gerarDieta()">Gerar</button>
+<div class="card">
+<input type="number" id="pesoIMC" placeholder="Peso">
+<input type="number" id="alturaIMC" placeholder="Altura">
+<button onclick="gerarDieta()">Gerar Dieta</button>
 <div id="dietaResultado"></div>
+</div>
 </section>
 
-<!-- TREINO -->
 <section id="treino">
-<h2>Treino Semanal</h2>
+<div class="card">
 <ul id="listaTreino"></ul>
+</div>
 </section>
 
-<!-- PESO -->
 <section id="peso">
-<h2>Controle de Peso</h2>
-<input type="number" id="novoPeso" placeholder="Novo Peso">
+<div class="card">
+<input type="number" id="novoPeso" placeholder="Novo peso">
 <button onclick="salvarPeso()">Salvar</button>
 <canvas id="graficoPeso"></canvas>
+</div>
 </section>
 
-<!-- LEMBRETE -->
 <section id="lembrete">
-<h2>Lembrete</h2>
+<div class="card">
 <input type="number" id="minutos" placeholder="Intervalo em minutos">
-<button onclick="iniciarLembrete()">Iniciar</button>
+<button onclick="iniciarLembrete()">Ativar</button>
+</div>
 </section>
+
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-window.showTab=function(id){
+/* LOGIN */
+if(localStorage.getItem("user")){
+loginTela.style.display="none";
+app.style.display="block";
+}
+window.login=function(){
+localStorage.setItem("user",nomeUser.value);
+loginTela.style.display="none";
+app.style.display="block";
+}
+
+/* ABAS */
+window.showTab=id=>{
 document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 }
 
+/* ALIMENTOS */
 const alimentos={
-"Arroz":{cal:130,p:2.5,c:28,g:0.3},
-"Feijão":{cal:77,p:5,c:14,g:0.5},
-"Frango":{cal:165,p:31,c:0,g:3.6},
-"Carne":{cal:250,p:26,c:0,g:15},
-"Ovo":{cal:155,p:13,c:1,g:11},
-"Macarrão":{cal:158,p:6,c:30,g:1},
-"Banana":{cal:89,p:1,c:23,g:0.3},
-"Maçã":{cal:52,p:0.3,c:14,g:0.2},
-"Leite":{cal:42,p:3.4,c:5,g:1},
-"Aveia":{cal:389,p:17,c:66,g:7},
-"Batata":{cal:86,p:2,c:20,g:0.1}
+"Arroz":130,"Feijão":77,"Frango":165,"Carne":250,"Ovo":155,
+"Macarrão":158,"Banana":89,"Maçã":52,"Leite":42,"Aveia":389,
+"Batata":86,"Peixe":206,"Pão":265
 };
+for(let a in alimentos){let o=document.createElement("option");o.text=a;alimento.add(o);}
 
-const select=document.getElementById("alimento");
-for(let a in alimentos){
-let o=document.createElement("option");
-o.text=a;
-select.add(o);
-}
-
+/* REFEIÇÕES */
 let refeicoes=JSON.parse(localStorage.getItem("refeicoes")||"[]");
-function salvarRefeicoes(){localStorage.setItem("refeicoes",JSON.stringify(refeicoes));}
-
+function salvarR(){localStorage.setItem("refeicoes",JSON.stringify(refeicoes));}
 window.addComida=function(){
-let qtd=parseFloat(quantidade.value);
-if(!qtd)return;
-let base=alimentos[select.value];
-let item={comida:select.value,qtd,
-cal:(base.cal*qtd)/100,p:(base.p*qtd)/100,c:(base.c*qtd)/100,g:(base.g*qtd)/100};
-refeicoes.push(item);
-salvarRefeicoes();
-renderRefeicoes();
+let qtd=quantidade.value;
+let cal=(alimentos[alimento.value]*qtd)/100;
+refeicoes.push({comida:alimento.value,qtd,cal});
+salvarR();renderR();
 }
-
-window.delComida=function(i){refeicoes.splice(i,1);salvarRefeicoes();renderRefeicoes();}
-window.editarComida=function(i){
-let nova=prompt("Nova quantidade (g):",refeicoes[i].qtd);
-if(!nova)return;
-let base=alimentos[refeicoes[i].comida];
-refeicoes[i].qtd=nova;
-refeicoes[i].cal=(base.cal*nova)/100;
-refeicoes[i].p=(base.p*nova)/100;
-refeicoes[i].c=(base.c*nova)/100;
-refeicoes[i].g=(base.g*nova)/100;
-salvarRefeicoes();
-renderRefeicoes();
+window.delComida=i=>{refeicoes.splice(i,1);salvarR();renderR();}
+window.editarComida=i=>{
+let n=prompt("Nova qtd:",refeicoes[i].qtd);
+if(!n)return;
+refeicoes[i].qtd=n;
+refeicoes[i].cal=(alimentos[refeicoes[i].comida]*n)/100;
+salvarR();renderR();
 }
-
-function renderRefeicoes(){
-listaComidas.innerHTML="";
-let total=0;
+function renderR(){
+listaComidas.innerHTML="";let t=0;
 refeicoes.forEach((r,i)=>{
-total+=r.cal;
-listaComidas.innerHTML+=`<li>${r.comida} ${r.qtd}g - ${r.cal.toFixed(1)} kcal
-<button onclick='editarComida(${i})'>✏️</button>
-<button onclick='delComida(${i})'>❌</button></li>`;
+t+=r.cal;
+listaComidas.innerHTML+=`<li>${r.comida} ${r.qtd}g ${r.cal.toFixed(1)}kcal
+<button class="smallbtn" onclick="editarComida(${i})">✏️</button>
+<button class="smallbtn" onclick="delComida(${i})">❌</button></li>`;
 });
-totalRefeicao.innerHTML=`Total: ${total.toFixed(1)} kcal`;
+totalRefeicao.innerText="Total: "+t.toFixed(1)+" kcal";
 }
-renderRefeicoes();
+renderR();
 
+/* DIETA */
 window.gerarDieta=function(){
-let p=pesoIMC.value,a=alturaIMC.value;
-let imc=p/(a*a);
-let base=imc<18.5?2500:imc<25?2000:1600;
-dietaResultado.innerHTML=`IMC ${imc.toFixed(1)}<br>Calorias ${base}`;
+let imc=pesoIMC.value/(alturaIMC.value*alturaIMC.value);
+let cal=imc<18?2500:imc<25?2000:1600;
+dietaResultado.innerHTML="IMC "+imc.toFixed(1)+"<br>Calorias "+cal;
 }
 
-let treino=JSON.parse(localStorage.getItem("treino")||["Seg: Pernas","Ter: Peito","Qua: Costas"]);
-function salvarTreino(){localStorage.setItem("treino",JSON.stringify(treino));}
-function renderTreino(){
-listaTreino.innerHTML="";
-treino.forEach((t,i)=>{
-listaTreino.innerHTML+=`<li>${t}
-<button onclick='editarTreino(${i})'>✏️</button>
-<button onclick='delTreino(${i})'>❌</button></li>`;
-});
-}
-window.editarTreino=function(i){
-let n=prompt("Editar:",treino[i]); if(!n)return;
-treino[i]=n; salvarTreino(); renderTreino();
-}
-window.delTreino=function(i){
-treino.splice(i,1); salvarTreino(); renderTreino();
-}
-renderTreino();
+/* TREINO */
+let treino=["Seg: Pernas","Ter: Peito","Qua: Costas","Qui: Ombro","Sex: Braços"];
+listaTreino.innerHTML=treino.map(t=>"<li>"+t+"</li>").join("");
 
+/* PESO */
 let pesos=JSON.parse(localStorage.getItem("pesos")||[]);
-window.salvarPeso=function(){
-pesos.push(novoPeso.value);
-localStorage.setItem("pesos",JSON.stringify(pesos));
-grafico.update();
-}
+window.salvarPeso=function(){pesos.push(novoPeso.value);localStorage.setItem("pesos",JSON.stringify(pesos));grafico.update();}
+const grafico=new Chart(graficoPeso,{type:'line',data:{labels:pesos.map((_,i)=>i+1),datasets:[{label:'Peso',data:pesos}]}});
 
-const grafico=new Chart(document.getElementById("graficoPeso"),{
-type:'line',
-data:{labels:pesos.map((_,i)=>i+1),
-datasets:[{label:'Peso',data:pesos}]}
-});
-
-let intervalo;
+/* LEMBRETES */
+let inter;
 window.iniciarLembrete=function(){
 Notification.requestPermission().then(()=>{
-clearInterval(intervalo);
-intervalo=setInterval(()=>new Notification("Hora do lembrete!"),minutos.value*60000);
+clearInterval(inter);
+inter=setInterval(()=>new Notification("Hora de cuidar da saúde!"),minutos.value*60000);
 });
 }
 

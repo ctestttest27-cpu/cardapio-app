@@ -1,104 +1,109 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>Vida Saudável - Dieta e Treino</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vida Saudável App</title>
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1b5e20">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1b5e20">
 
-  <!-- Ícone para navegador -->
-  <link rel="icon" href="icon-192.png">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-    }
-
-    header {
-      background: #1b5e20;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 20px;
-    }
-
-    main {
-      padding: 15px;
-    }
-
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    button {
-      background: #1b5e20;
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 5px;
-    }
-
-    button:hover {
-      background: #145a1a;
-    }
-  </style>
+<style>
+body {font-family: Arial; margin:0; background:#f1f8e9;}
+header {background:#1b5e20; color:white; padding:15px; text-align:center;}
+section {padding:15px;}
+input, button, select {padding:8px; margin:5px 0; width:100%;}
+button {background:#2e7d32; color:white; border:none; border-radius:5px;}
+.card {background:white; padding:10px; margin:10px 0; border-radius:8px;}
+</style>
 </head>
 
 <body>
 
 <header>
-  Vida Saudável - Dieta e Treino
+<h2>Vida Saudável</h2>
 </header>
 
-<main>
+<section>
+<h3>⚖️ Meu Peso</h3>
+<input type="number" id="peso" placeholder="Digite seu peso">
+<button onclick="salvarPeso()">Salvar Peso</button>
+<p id="historicoPeso"></p>
+</section>
 
-  <div class="card">
-    <h3>🍎 Refeições</h3>
-    <p>Monte suas refeições e calcule calorias.</p>
-  </div>
+<section>
+<h3>🍽️ Montar Refeição</h3>
+<input type="text" id="alimento" placeholder="Alimento">
+<input type="number" id="caloria" placeholder="Calorias">
+<button onclick="addAlimento()">Adicionar</button>
+<div id="listaAlimentos"></div>
+<h4>Total: <span id="totalCal">0</span> kcal</h4>
+</section>
 
-  <div class="card">
-    <h3>🏋️ Treino</h3>
-    <p>Treinos em casa com peso corporal e halteres.</p>
-  </div>
+<section>
+<h3>🏋️ Treino da Semana</h3>
+<input type="text" id="diaTreino" placeholder="Dia (ex: Segunda)">
+<input type="text" id="videoTreino" placeholder="Link do vídeo treino">
+<button onclick="addTreino()">Salvar Treino</button>
+<div id="listaTreinos"></div>
+</section>
 
-  <div class="card">
-    <h3>💧 Lembretes</h3>
-    <p>Água, refeições e horário de dormir.</p>
-  </div>
-
-  <div class="card">
-    <h3>⚖️ Controle de Peso</h3>
-    <p>Acompanhe seu progresso com gráfico.</p>
-  </div>
-
-</main>
+<section>
+<h3>⏰ Lembretes</h3>
+<select id="tipoLembrete">
+<option>Beber água</option>
+<option>Comer</option>
+<option>Dormir</option>
+<option>Treino</option>
+</select>
+<input type="number" id="intervalo" placeholder="Intervalo em minutos">
+<button onclick="addLembrete()">Ativar</button>
+<div id="listaLembretes"></div>
+</section>
 
 <script>
-  // Registrar Service Worker
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function() {
-      navigator.serviceWorker.register("service-worker.js")
-        .then(function(registration) {
-          console.log("Service Worker registrado com sucesso:", registration.scope);
-        })
-        .catch(function(error) {
-          console.log("Erro ao registrar Service Worker:", error);
-        });
-    });
-  }
+let total = 0;
+
+function salvarPeso(){
+ let peso = document.getElementById("peso").value;
+ localStorage.setItem("peso", peso);
+ document.getElementById("historicoPeso").innerText = "Peso atual: " + peso + "kg";
+}
+
+function addAlimento(){
+ let nome = alimento.value;
+ let cal = Number(caloria.value);
+ total += cal;
+ totalCal.innerText = total;
+ let div = document.createElement("div");
+ div.className="card";
+ div.innerHTML = nome+" - "+cal+" kcal <button onclick='this.parentElement.remove(); total-="+cal+"; totalCal.innerText=total;'>❌</button>";
+ listaAlimentos.appendChild(div);
+}
+
+function addTreino(){
+ let dia = diaTreino.value;
+ let link = videoTreino.value;
+ let div = document.createElement("div");
+ div.className="card";
+ div.innerHTML = "<b>"+dia+"</b><br><a href='"+link+"' target='_blank'>Abrir treino</a> <button onclick='this.parentElement.remove()'>❌</button>";
+ listaTreinos.appendChild(div);
+}
+
+function addLembrete(){
+ let tipo = tipoLembrete.value;
+ let min = intervalo.value * 60000;
+ setInterval(()=> alert(tipo), min);
+ let div = document.createElement("div");
+ div.className="card";
+ div.innerText = tipo + " a cada " + intervalo.value + " min";
+ listaLembretes.appendChild(div);
+}
+
+// Service Worker
+if ("serviceWorker" in navigator) {
+ navigator.serviceWorker.register("./service-worker.js");
+}
 </script>
 
 </body>

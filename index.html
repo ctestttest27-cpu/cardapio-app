@@ -1,55 +1,99 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meu Cardápio Saudável</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4CAF50">
-
+<title>Vida Saudável</title>
 <style>
-body { font-family: Arial; margin:0; background:#f2f2f2; }
-header { background:#4CAF50; color:white; padding:15px; text-align:center; }
-section { background:white; margin:10px; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-h2 { color:#4CAF50; }
-ul { padding-left:20px; }
-button {
-  background:#4CAF50;
-  color:white;
-  border:none;
-  padding:10px;
-  border-radius:8px;
-  margin-top:5px;
-}
+body{font-family:Arial;margin:0;padding:0;background:#f4f4f4}
+header{background:#2e7d32;color:white;padding:15px;text-align:center}
+section{padding:15px}
+button{padding:10px;margin:5px;border:none;background:#2e7d32;color:white;border-radius:5px}
+input,select{padding:8px;margin:5px;width:95%}
+.card{background:white;padding:10px;margin:10px 0;border-radius:8px;box-shadow:0 0 5px #ccc}
+.dark{background:#121212;color:white}
 </style>
 </head>
-
 <body>
 
 <header>
-<h1>🍽️ Cardápio Saudável</h1>
+<h2>App Vida Saudável</h2>
 </header>
 
-<section>
-<h2>Segunda</h2>
-<p><b>Café:</b> Omelete + café</p>
-<p><b>Almoço:</b> Arroz, feijão, frango e salada</p>
-<p><b>Jantar:</b> Sopa de legumes</p>
-<button onclick="marcar(this)">✔️ Feito</button>
+<section class="card">
+<h3>⚖ Calcular IMC</h3>
+<input id="peso" placeholder="Peso (kg)">
+<input id="altura" placeholder="Altura (m)">
+<button onclick="calcIMC()">Calcular</button>
+<p id="imcResultado"></p>
 </section>
 
-<section>
-<h2>Terça</h2>
-<p><b>Café:</b> Vitamina + ovo</p>
-<p><b>Almoço:</b> Arroz, carne moída e abobrinha</p>
-<p><b>Jantar:</b> Omelete + salada</p>
-<button onclick="marcar(this)">✔️ Feito</button>
+<section class="card">
+<h3>🥗 Montar Refeição</h3>
+<select id="alimento"></select>
+<input id="quantidade" placeholder="Quantidade (g)">
+<button onclick="addComida()">Adicionar</button>
+<p id="totalRefeicao">Calorias da refeição: 0</p>
 </section>
 
-<section>
-<h2>Lista de Compras</h2>
-<ul>
-<li>Arroz</li>
-<li>Feijão</li>
-<li>Frango</li>
-<li>O
+<section class="card">
+<h3>🏋 Treinos</h3>
+<p><b>Corpo livre</b>: Agachamento, Flexão, Abdominal, Prancha, Polichinelo</p>
+<p><b>Com halteres</b>: Rosca bíceps, Desenvolvimento, Remada, Afundo</p>
+</section>
+
+<section class="card">
+<h3>⏰ Lembretes</h3>
+<button onclick="alert('Hora de beber água 💧')">Água</button>
+<button onclick="alert('Hora de comer 🍽')">Refeição</button>
+<button onclick="alert('Hora de dormir 😴')">Dormir</button>
+</section>
+
+<section class="card">
+<h3>🌙 Modo escuro</h3>
+<button onclick="document.body.classList.toggle('dark')">Ativar</button>
+</section>
+
+<script>
+const alimentos = {
+"Arroz":130,"Feijão":77,"Frango":165,"Carne":250,"Ovo":155,
+"Batata":86,"Batata doce":90,"Macarrão":158,"Banana":89,
+"Maçã":52,"Pão":265,"Leite":42,"Queijo":402,"Iogurte":59,
+"Abacate":160,"Aveia":389,"Brócolis":34,"Cenoura":41,
+"Peixe":206,"Salmão":208,"Atum":132,"Amendoim":567,
+"Castanha":553,"Chocolate":546,"Refrigerante":41
+};
+
+const select = document.getElementById("alimento");
+for(let item in alimentos){
+let opt = document.createElement("option");
+opt.text = item;
+select.add(opt);
+}
+
+let total = 0;
+
+function addComida(){
+let comida = select.value;
+let qtd = document.getElementById("quantidade").value;
+let cal = (alimentos[comida] * qtd) / 100;
+total += cal;
+document.getElementById("totalRefeicao").innerText = 
+"Calorias da refeição: " + total.toFixed(1) + " kcal";
+}
+
+function calcIMC(){
+let p = peso.value;
+let a = altura.value;
+let imc = (p/(a*a)).toFixed(1);
+imcResultado.innerText = "Seu IMC é " + imc;
+}
+</script>
+
+</body>
+</html>
+
+
+
+

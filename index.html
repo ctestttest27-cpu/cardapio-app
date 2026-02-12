@@ -1,13 +1,84 @@
-<script>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu App Fitness</title>
 
-/* ================= TROCA DE ABAS ================= */
-function showTab(id){
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{font-family:Arial;margin:0;background:#f4f4f4}
+nav{display:flex;flex-wrap:wrap;background:#111}
+nav button{flex:1;padding:10px;color:white;background:#111;border:none}
+nav button:hover{background:#333}
+section{display:none;padding:15px}
+section.active{display:block}
+input,select,button{margin:5px 0;padding:5px}
+ul{padding:0}
+li{list-style:none;background:white;margin:5px 0;padding:5px;border-radius:5px}
+button{cursor:pointer}
+</style>
+</head>
+
+<body>
+
+<nav>
+<button onclick="showTab('refeicao')">Refeições</button>
+<button onclick="showTab('dieta')">Dieta</button>
+<button onclick="showTab('treino')">Treino</button>
+<button onclick="showTab('peso')">Peso</button>
+<button onclick="showTab('lembrete')">Lembrete</button>
+</nav>
+
+<!-- REFEIÇÕES -->
+<section id="refeicao" class="active">
+<h2>Montar Refeição</h2>
+<select id="alimento"></select>
+<input type="number" id="quantidade" placeholder="Quantidade (g)">
+<button onclick="addComida()">Adicionar</button>
+<ul id="listaComidas"></ul>
+<h3 id="totalRefeicao"></h3>
+</section>
+
+<!-- DIETA -->
+<section id="dieta">
+<h2>Dieta Automática</h2>
+<input type="number" id="pesoIMC" placeholder="Peso (kg)">
+<input type="number" id="alturaIMC" placeholder="Altura (m)">
+<button onclick="gerarDieta()">Gerar</button>
+<div id="dietaResultado"></div>
+</section>
+
+<!-- TREINO -->
+<section id="treino">
+<h2>Treino Semanal</h2>
+<ul id="listaTreino"></ul>
+</section>
+
+<!-- PESO -->
+<section id="peso">
+<h2>Controle de Peso</h2>
+<input type="number" id="novoPeso" placeholder="Novo Peso">
+<button onclick="salvarPeso()">Salvar</button>
+<canvas id="graficoPeso"></canvas>
+</section>
+
+<!-- LEMBRETE -->
+<section id="lembrete">
+<h2>Lembrete</h2>
+<input type="number" id="minutos" placeholder="Intervalo em minutos">
+<button onclick="iniciarLembrete()">Iniciar</button>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+window.showTab=function(id){
 document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
 }
 
-/* ================= BANCO DE ALIMENTOS COMPLETO ================= */
-/* valores por 100g */
 const alimentos={
 "Arroz":{cal:130,p:2.5,c:28,g:0.3},
 "Feijão":{cal:77,p:5,c:14,g:0.5},
@@ -18,14 +89,8 @@ const alimentos={
 "Banana":{cal:89,p:1,c:23,g:0.3},
 "Maçã":{cal:52,p:0.3,c:14,g:0.2},
 "Leite":{cal:42,p:3.4,c:5,g:1},
-"Queijo":{cal:402,p:25,c:1,g:33},
 "Aveia":{cal:389,p:17,c:66,g:7},
-"Batata":{cal:86,p:2,c:20,g:0.1},
-"Peixe":{cal:206,p:22,c:0,g:12},
-"Pão":{cal:265,p:9,c:49,g:3},
-"Iogurte":{cal:59,p:10,c:3,g:0.4},
-"Chocolate":{cal:546,p:5,c:61,g:31},
-"Pizza":{cal:266,p:11,c:33,g:10}
+"Batata":{cal:86,p:2,c:20,g:0.1}
 };
 
 const select=document.getElementById("alimento");
@@ -35,65 +100,24 @@ o.text=a;
 select.add(o);
 }
 
-/* ================= REFEIÇÕES ================= */
 let refeicoes=JSON.parse(localStorage.getItem("refeicoes")||"[]");
-
 function salvarRefeicoes(){localStorage.setItem("refeicoes",JSON.stringify(refeicoes));}
 
-function addComida(){
-let comida=select.value;
+window.addComida=function(){
 let qtd=parseFloat(quantidade.value);
-if(!qtd) return;
-
-let base=alimentos[comida];
-let item={
-comida,
-qtd,
-cal:(base.cal*qtd)/100,
-p:(base.p*qtd)/100,
-c:(base.c*qtd)/100,
-g:(base.g*qtd)/100
-};
-
+if(!qtd)return;
+let base=alimentos[select.value];
+let item={comida:select.value,qtd,
+cal:(base.cal*qtd)/100,p:(base.p*qtd)/100,c:(base.c*qtd)/100,g:(base.g*qtd)/100};
 refeicoes.push(item);
 salvarRefeicoes();
 renderRefeicoes();
 }
 
-function renderRefeicoes(){
-listaComidas.innerHTML="";
-let total={cal:0,p:0,c:0,g:0};
-
-refeicoes.forEach((r,i)=>{
-total.cal+=r.cal;
-total.p+=r.p;
-total.c+=r.c;
-total.g+=r.g;
-
-listaComidas.innerHTML+=`
-<li>
-${r.comida} ${r.qtd}g  
-🔥${r.cal.toFixed(1)}kcal  
-🥩${r.p.toFixed(1)}P  
-🍞${r.c.toFixed(1)}C  
-🥑${r.g.toFixed(1)}G
-<button class='edit' onclick='editarComida(${i})'>Editar</button>
-<button class='delete' onclick='delComida(${i})'>X</button>
-</li>`;
-});
-
-totalRefeicao.innerHTML=
-`🔥 ${total.cal.toFixed(1)} kcal |
-🥩 ${total.p.toFixed(1)}g |
-🍞 ${total.c.toFixed(1)}g |
-🥑 ${total.g.toFixed(1)}g`;
-}
-
-function delComida(i){refeicoes.splice(i,1);salvarRefeicoes();renderRefeicoes();}
-
-function editarComida(i){
+window.delComida=function(i){refeicoes.splice(i,1);salvarRefeicoes();renderRefeicoes();}
+window.editarComida=function(i){
 let nova=prompt("Nova quantidade (g):",refeicoes[i].qtd);
-if(!nova) return;
+if(!nova)return;
 let base=alimentos[refeicoes[i].comida];
 refeicoes[i].qtd=nova;
 refeicoes[i].cal=(base.cal*nova)/100;
@@ -103,108 +127,69 @@ refeicoes[i].g=(base.g*nova)/100;
 salvarRefeicoes();
 renderRefeicoes();
 }
+
+function renderRefeicoes(){
+listaComidas.innerHTML="";
+let total=0;
+refeicoes.forEach((r,i)=>{
+total+=r.cal;
+listaComidas.innerHTML+=`<li>${r.comida} ${r.qtd}g - ${r.cal.toFixed(1)} kcal
+<button onclick='editarComida(${i})'>✏️</button>
+<button onclick='delComida(${i})'>❌</button></li>`;
+});
+totalRefeicao.innerHTML=`Total: ${total.toFixed(1)} kcal`;
+}
 renderRefeicoes();
 
-/* ================= DIETA AUTOMÁTICA ================= */
-function gerarDieta(){
+window.gerarDieta=function(){
 let p=pesoIMC.value,a=alturaIMC.value;
 let imc=p/(a*a);
 let base=imc<18.5?2500:imc<25?2000:1600;
-
-let prot=p*2;
-let gord=(base*0.25)/9;
-let carb=(base-(prot*4+gord*9))/4;
-
-dietaResultado.innerHTML=`
-IMC: ${imc.toFixed(1)}<br>
-Calorias: ${base} kcal<br>
-Proteína: ${prot.toFixed(0)}g<br>
-Carboidratos: ${carb.toFixed(0)}g<br>
-Gorduras: ${gord.toFixed(0)}g`;
+dietaResultado.innerHTML=`IMC ${imc.toFixed(1)}<br>Calorias ${base}`;
 }
 
-/* ================= TREINO ================= */
-let treino=JSON.parse(localStorage.getItem("treino")||[
-"Seg: Pernas",
-"Ter: Peito",
-"Qua: Costas",
-"Qui: Ombro",
-"Sex: Braços"
-]);
-
-function gerarTreino(){
-localStorage.setItem("treino",JSON.stringify(treino));
-renderTreino();
-}
+let treino=JSON.parse(localStorage.getItem("treino")||["Seg: Pernas","Ter: Peito","Qua: Costas"]);
+function salvarTreino(){localStorage.setItem("treino",JSON.stringify(treino));}
 function renderTreino(){
 listaTreino.innerHTML="";
 treino.forEach((t,i)=>{
 listaTreino.innerHTML+=`<li>${t}
-<button class='edit' onclick='editarTreino(${i})'>Editar</button>
-<button class='delete' onclick='delTreino(${i})'>X</button></li>`;
+<button onclick='editarTreino(${i})'>✏️</button>
+<button onclick='delTreino(${i})'>❌</button></li>`;
 });
 }
-function editarTreino(i){
-let n=prompt("Editar treino:",treino[i]);
-if(!n)return;
-treino[i]=n;
-localStorage.setItem("treino",JSON.stringify(treino));
-renderTreino();
+window.editarTreino=function(i){
+let n=prompt("Editar:",treino[i]); if(!n)return;
+treino[i]=n; salvarTreino(); renderTreino();
 }
-function delTreino(i){
-treino.splice(i,1);
-localStorage.setItem("treino",JSON.stringify(treino));
-renderTreino();
+window.delTreino=function(i){
+treino.splice(i,1); salvarTreino(); renderTreino();
 }
 renderTreino();
 
-/* ================= PLANO SEMANAL ================= */
-let plano=JSON.parse(localStorage.getItem("plano")||[]);
-function addPlano(){
-plano.push({dia:diaSemana.value,desc:refSemana.value});
-localStorage.setItem("plano",JSON.stringify(plano));
-renderPlano();
-}
-function renderPlano(){
-listaPlano.innerHTML="";
-plano.forEach((p,i)=>{
-listaPlano.innerHTML+=`<li>${p.dia} - ${p.desc}
-<button class='edit' onclick='editarPlano(${i})'>Editar</button>
-<button class='delete' onclick='delPlano(${i})'>X</button></li>`;
-});
-}
-function editarPlano(i){
-let n=prompt("Editar:",plano[i].desc);
-plano[i].desc=n;
-localStorage.setItem("plano",JSON.stringify(plano));
-renderPlano();
-}
-function delPlano(i){
-plano.splice(i,1);
-localStorage.setItem("plano",JSON.stringify(plano));
-renderPlano();
-}
-renderPlano();
-
-/* ================= GRÁFICO PESO ================= */
 let pesos=JSON.parse(localStorage.getItem("pesos")||[]);
-function salvarPeso(){
+window.salvarPeso=function(){
 pesos.push(novoPeso.value);
 localStorage.setItem("pesos",JSON.stringify(pesos));
 grafico.update();
 }
-const grafico=new Chart(graficoPeso,{
+
+const grafico=new Chart(document.getElementById("graficoPeso"),{
 type:'line',
-data:{labels:pesos.map((_,i)=>i+1),datasets:[{label:'Peso',data:pesos}]}
+data:{labels:pesos.map((_,i)=>i+1),
+datasets:[{label:'Peso',data:pesos}]}
 });
 
-/* ================= LEMBRETES ================= */
 let intervalo;
-function iniciarLembrete(){
+window.iniciarLembrete=function(){
 Notification.requestPermission().then(()=>{
 clearInterval(intervalo);
 intervalo=setInterval(()=>new Notification("Hora do lembrete!"),minutos.value*60000);
 });
 }
 
+});
 </script>
+
+</body>
+</html>

@@ -7,21 +7,15 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-:root{
---bg:#121212;
---card:#1e1e1e;
---green:#00c853;
---text:#ffffff;
-}
-body{margin:0;font-family:Arial;background:var(--bg);color:var(--text)}
-header{background:var(--green);padding:15px;text-align:center;font-size:20px}
+body{margin:0;font-family:Arial;background:#121212;color:white}
+header{background:#00c853;padding:15px;text-align:center;font-size:20px}
 nav{display:flex;background:#000}
-nav button{flex:1;padding:12px;background:#000;color:white;border:none;font-size:16px}
+nav button{flex:1;padding:12px;background:#000;color:white;border:none}
 section{display:none;padding:15px}
 section.active{display:block}
-.card{background:var(--card);padding:12px;border-radius:10px;margin:10px 0}
+.card{background:#1e1e1e;padding:12px;border-radius:10px;margin:10px 0}
 input,select{width:100%;padding:10px;margin:5px 0;border:none;border-radius:5px}
-button{padding:10px;border:none;border-radius:6px;margin-top:5px;background:var(--green);color:white}
+button{padding:10px;border:none;border-radius:6px;margin-top:5px;background:#00c853;color:white}
 ul{padding:0}
 li{list-style:none;background:#2a2a2a;margin:5px 0;padding:8px;border-radius:6px}
 .smallbtn{padding:5px 8px;margin-left:5px;font-size:12px}
@@ -69,6 +63,13 @@ li{list-style:none;background:#2a2a2a;margin:5px 0;padding:8px;border-radius:6px
 
 <section id="treino">
 <div class="card">
+<select id="diaTreino">
+<option>Segunda</option><option>Terça</option><option>Quarta</option>
+<option>Quinta</option><option>Sexta</option><option>Sábado</option><option>Domingo</option>
+</select>
+<input id="nomeTreino" placeholder="Nome do treino">
+<input id="linkTreino" placeholder="Link do vídeo">
+<button onclick="addTreino()">Adicionar Treino</button>
 <ul id="listaTreino"></ul>
 </div>
 </section>
@@ -83,94 +84,61 @@ li{list-style:none;background:#2a2a2a;margin:5px 0;padding:8px;border-radius:6px
 
 <section id="lembrete">
 <div class="card">
-<input type="number" id="minutos" placeholder="Intervalo em minutos">
-<button onclick="iniciarLembrete()">Ativar</button>
+<input id="aguaMin" placeholder="Água (min)">
+<button onclick="ativarAgua()">Água</button>
+
+<input id="comidaMin" placeholder="Refeição (min)">
+<button onclick="ativarComida()">Refeição</button>
+
+<input id="treinoMin" placeholder="Treino (min)">
+<button onclick="ativarTreino()">Treino</button>
+
+<input id="sonoMin" placeholder="Dormir (min)">
+<button onclick="ativarSono()">Dormir</button>
 </div>
 </section>
 
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded",function(){
 
-/* LOGIN */
-if(localStorage.getItem("user")){
-loginTela.style.display="none";
-app.style.display="block";
-}
-window.login=function(){
-localStorage.setItem("user",nomeUser.value);
-loginTela.style.display="none";
-app.style.display="block";
-}
+if(localStorage.getItem("user")){loginTela.style.display="none";app.style.display="block";}
+window.login=function(){localStorage.setItem("user",nomeUser.value);loginTela.style.display="none";app.style.display="block";}
 
-/* ABAS */
-window.showTab=id=>{
-document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-}
+window.showTab=id=>{document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");}
 
-/* ALIMENTOS */
-const alimentos={
-"Arroz":130,"Feijão":77,"Frango":165,"Carne":250,"Ovo":155,
-"Macarrão":158,"Banana":89,"Maçã":52,"Leite":42,"Aveia":389,
-"Batata":86,"Peixe":206,"Pão":265
-};
+const alimentos={"Arroz":130,"Feijão":77,"Frango":165,"Carne":250,"Ovo":155,"Macarrão":158,"Banana":89,"Maçã":52,"Leite":42,"Aveia":389,"Batata":86};
 for(let a in alimentos){let o=document.createElement("option");o.text=a;alimento.add(o);}
 
-/* REFEIÇÕES */
 let refeicoes=JSON.parse(localStorage.getItem("refeicoes")||"[]");
 function salvarR(){localStorage.setItem("refeicoes",JSON.stringify(refeicoes));}
-window.addComida=function(){
-let qtd=quantidade.value;
-let cal=(alimentos[alimento.value]*qtd)/100;
-refeicoes.push({comida:alimento.value,qtd,cal});
-salvarR();renderR();
-}
+window.addComida=function(){let qtd=quantidade.value;if(!qtd)return;let cal=(alimentos[alimento.value]*qtd)/100;refeicoes.push({comida:alimento.value,qtd,cal});salvarR();renderR();}
 window.delComida=i=>{refeicoes.splice(i,1);salvarR();renderR();}
-window.editarComida=i=>{
-let n=prompt("Nova qtd:",refeicoes[i].qtd);
-if(!n)return;
-refeicoes[i].qtd=n;
-refeicoes[i].cal=(alimentos[refeicoes[i].comida]*n)/100;
-salvarR();renderR();
-}
-function renderR(){
-listaComidas.innerHTML="";let t=0;
-refeicoes.forEach((r,i)=>{
-t+=r.cal;
-listaComidas.innerHTML+=`<li>${r.comida} ${r.qtd}g ${r.cal.toFixed(1)}kcal
-<button class="smallbtn" onclick="editarComida(${i})">✏️</button>
-<button class="smallbtn" onclick="delComida(${i})">❌</button></li>`;
-});
-totalRefeicao.innerText="Total: "+t.toFixed(1)+" kcal";
-}
+window.editarComida=i=>{let n=prompt("Nova qtd:",refeicoes[i].qtd);if(!n)return;refeicoes[i].qtd=n;refeicoes[i].cal=(alimentos[refeicoes[i].comida]*n)/100;salvarR();renderR();}
+function renderR(){listaComidas.innerHTML="";let t=0;refeicoes.forEach((r,i)=>{t+=r.cal;listaComidas.innerHTML+=`<li>${r.comida} ${r.qtd}g ${r.cal.toFixed(1)}kcal<button class="smallbtn" onclick="editarComida(${i})">✏️</button><button class="smallbtn" onclick="delComida(${i})">❌</button></li>`});totalRefeicao.innerText="Total: "+t.toFixed(1)+" kcal";}
 renderR();
 
-/* DIETA */
-window.gerarDieta=function(){
-let imc=pesoIMC.value/(alturaIMC.value*alturaIMC.value);
-let cal=imc<18?2500:imc<25?2000:1600;
-dietaResultado.innerHTML="IMC "+imc.toFixed(1)+"<br>Calorias "+cal;
-}
+window.gerarDieta=function(){let imc=pesoIMC.value/(alturaIMC.value*alturaIMC.value);let cal=imc<18?2500:imc<25?2000:1600;dietaResultado.innerHTML="IMC "+imc.toFixed(1)+"<br>Calorias "+cal;}
 
-/* TREINO */
-let treino=["Seg: Pernas","Ter: Peito","Qua: Costas","Qui: Ombro","Sex: Braços"];
-listaTreino.innerHTML=treino.map(t=>"<li>"+t+"</li>").join("");
+let treinos=JSON.parse(localStorage.getItem("treinos")||"[]");
+function salvarTreinos(){localStorage.setItem("treinos",JSON.stringify(treinos));}
+window.addTreino=function(){treinos.push({dia:diaTreino.value,nome:nomeTreino.value,link:linkTreino.value});salvarTreinos();renderTreinos();}
+window.editarTreino=i=>{let n=prompt("Novo link:",treinos[i].link);if(!n)return;treinos[i].link=n;salvarTreinos();renderTreinos();}
+window.delTreino=i=>{treinos.splice(i,1);salvarTreinos();renderTreinos();}
+function renderTreinos(){listaTreino.innerHTML="";treinos.forEach((t,i)=>{listaTreino.innerHTML+=`<li><b>${t.dia}</b> - ${t.nome}<a href="${t.link}" target="_blank"><button>Abrir</button></a><button class="smallbtn" onclick="editarTreino(${i})">✏️</button><button class="smallbtn" onclick="delTreino(${i})">❌</button></li>`});}
+renderTreinos();
 
-/* PESO */
 let pesos=JSON.parse(localStorage.getItem("pesos")||[]);
 window.salvarPeso=function(){pesos.push(novoPeso.value);localStorage.setItem("pesos",JSON.stringify(pesos));grafico.update();}
 const grafico=new Chart(graficoPeso,{type:'line',data:{labels:pesos.map((_,i)=>i+1),datasets:[{label:'Peso',data:pesos}]}});
 
-/* LEMBRETES */
-let inter;
-window.iniciarLembrete=function(){
-Notification.requestPermission().then(()=>{
-clearInterval(inter);
-inter=setInterval(()=>new Notification("Hora de cuidar da saúde!"),minutos.value*60000);
-});
-}
+function criarLembrete(msg,min){return setInterval(()=>new Notification(msg),min*60000);}
+let a,c,t,s;
+window.ativarAgua=()=>Notification.requestPermission().then(()=>{clearInterval(a);a=criarLembrete("Beber água 💧",aguaMin.value);});
+window.ativarComida=()=>Notification.requestPermission().then(()=>{clearInterval(c);c=criarLembrete("Hora de comer 🍽",comidaMin.value);});
+window.ativarTreino=()=>Notification.requestPermission().then(()=>{clearInterval(t);t=criarLembrete("Hora do treino 🏋",treinoMin.value);});
+window.ativarSono=()=>Notification.requestPermission().then(()=>{clearInterval(s);s=criarLembrete("Hora de dormir 😴",sonoMin.value);});
 
 });
 </script>
